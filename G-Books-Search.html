@@ -1,0 +1,205 @@
+<html>
+  <head>
+    <title>G-Books Quick Search</title>
+    <!-- link to Bootstrap CSS --->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+    <style>
+     /* Bootstrap CSS clsses are used not only in the HTML, but also plugged into JS for creating responsive elements  */
+	/* global styles (mobile first) */
+	 p{font-size:1.2em;}
+	 .header,.footer {background-color:#69C;
+	          color:#FFF;
+			  padding:20px;}
+			  
+	 .header{margin-bottom:50px;}
+	 .footer {height:200px; margin-top:50px;}
+	 .input-lg, .btn-lg {
+		display:block;
+		width: 300px;
+		vertical-align: middle;
+		margin:20px auto;
+	 }
+	
+	/* tablet and desktop specific styles */
+    @media (min-width: 768px){
+     .input-lg, .btn-lg {
+		display: inline-block;
+		width: 250px;
+		vertical-align: middle;
+		margin:5px;
+	 }
+	  h1{text-align:left;}
+	}
+     </style>
+  </head>
+  <body>
+  
+  <div class="container-fluid header">
+    <div class="container">
+      <div class="row">
+        <h3 class="text-center">Super Awesome Query Machine</h3>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="row">
+     <div class="col-xs-12 text-center">
+     <img src="http://abovethelaw.com/2009/12/17/Google%20Books%20Search%20Settlement.jpg" />
+       <form class="form-inline">
+        <input type="text" class="form-control input-lg" id="queryText" placeholder="Enter search term ..." >
+        <button type="button" class="btn btn-primary btn-lg" onclick="fireNewQuery()">Request Book List</button>
+       </form>  
+     </div>
+    </div>
+    
+  <div class="row">
+      <img src="http://constructs.stampede-design.com/wp-content/uploads/2015/06/buffer-loading.gif" style="display:block; width:300px; margin:50px auto;" id="loadingImg" class=" hidden" alt=""/>
+     <div id="searchResults">
+  
+     </div>
+  </div>
+   
+  </div>
+  
+  <div class="container-fluid footer navbar-fixed-bottom" id="footer">
+    <div class="container">
+      <div class="row">
+        <p class="text-center">&#169; 2016 Copyright Super Awesome Query Machine</p>
+      </div>
+    </div>
+  </div>
+  
+
+ 
+   
+<script>
+
+// this function gets executed on button click
+function fireNewQuery() {
+// clears existing search results on page
+   var searchResults =	document.getElementById('searchResults');
+   searchResults.innerHTML='';
+  
+// shows animated GIF to indicate to the user that a search is being conducted   
+  var loadingImg = document.getElementById('loadingImg');
+  loadingImg.setAttribute('class','');
+// gets new search term  
+  var queryText = document.getElementById("queryText").value;
+// configure XMLHttpRequest 
+  var xhttp = new XMLHttpRequest();
+  xhttp.onreadystatechange = function() {
+    if (xhttp.readyState == 4 && xhttp.status == 200) {
+// creats JSON Object	   
+	  searchResultObject = JSON.parse(xhttp.responseText);
+// creates array to hold the filtered search results for later display	  
+      var books= [];
+// chooses items from JSON Object to be displayed
+	  for (i = 0; i < searchResultObject.items.length; i++) { 
+     
+	  var title = searchResultObject.items[i].volumeInfo.title;
+	  var author = searchResultObject.items[i].volumeInfo.authors;
+	  var thumbnail = searchResultObject.items[i].volumeInfo.imageLinks.smallThumbnail;
+	  var description = searchResultObject.items[i].volumeInfo.description;
+	  var isbn = "ISBN : "+ searchResultObject.items[i].volumeInfo.industryIdentifiers[0].identifier;
+	  var previewLink = searchResultObject.items[i].volumeInfo.previewLink;
+// creates a book Object to hold data for every individual book		
+	  var book  = {title:title, author:author, thumbnail:thumbnail, isbn:isbn, description:description, previewLink:previewLink};
+//adds every new book Object to the books array 
+	  books.push(book);
+// sorts books array alphabetically
+	  books.sort(function (a,b){
+		  var titleA = a.title.toLowerCase(), titleB = b.title.toLowerCase();
+		  
+		   if(titleA < titleB){
+		     return -1;}
+			 
+		   if(titleA > titleB){
+		     return 1;} 
+		
+		   else {return 0;}
+
+		  });
+	  
+	  }
+	    for (b = 0; b < books.length; b++) {
+//grabs the container to hold search results		
+		var searchResults =	document.getElementById('searchResults');
+//creates a div to hold the info about every book		 
+		var bookDiv = document.createElement("div");
+		bookDiv.setAttribute("class", "book col-xs-12");
+//creates an h1 element and populates it with the book title using Bootsrap classes	
+		var bookTitle = document.createElement("h1");
+		bookTitle.setAttribute("class", "well"); 
+		bookTitle.style.margin="50 0 20px 0"; 
+		var bookTitleText = document.createTextNode(books[b].title);
+		bookTitle.appendChild(bookTitleText);	
+//creates a div element and populates it with the book author name,thumbnail, and ISBN using Bootsrap classes
+		var bookAuthThumbDiv = document.createElement("div");
+		bookAuthThumbDiv.setAttribute("class", "book-author-thumb col-xs-12 col-sm-3 tex text-center");
+		var bookAuthor = document.createElement("h3");
+		var bookAuthorText = document.createTextNode(books[b].author);
+		bookAuthor.appendChild(bookAuthorText);
+		bookAuthThumbDiv.appendChild(bookAuthor);
+		var bookThumb = document.createElement("img"); 
+		bookThumb.setAttribute("src", books[b].thumbnail);
+		bookThumb.style.width="75%";
+		bookThumb.style.margin="0 auto";
+		var bookISBN = document.createElement("h3");
+		var bookISBNText = document.createTextNode(books[b].isbn);
+		bookISBN.appendChild(bookISBNText);
+
+		bookAuthThumbDiv.appendChild(bookAuthor);  
+		bookAuthThumbDiv.appendChild(bookThumb);
+		bookAuthThumbDiv.appendChild(bookISBN);
+//creates a div element and populates it with the book description using Bootsrap classes 
+	    var bookDescriptionDiv = document.createElement("div");
+		bookDescriptionDiv.setAttribute("class", "book-description col-xs-12 col-sm-9");
+		var bookDescriptionP = document.createElement("p");
+		bookDescriptionP.style.margin="20px 0 10px";
+		var bookDescriptionText = document.createTextNode(books[b].description);
+		bookDescriptionP.appendChild(bookDescriptionText); 
+		bookDescriptionDiv.appendChild(bookDescriptionP);
+//creates a button element and populates it with the book preview link provided in the response Object 
+		var bookPreviewBtn = document.createElement("a");
+		var bookPreviewLinkText  = document.createTextNode('Click Here To Preview');
+		
+		bookPreviewBtn.setAttribute('href', previewLink);
+		bookPreviewBtn.setAttribute('target', '_blank');
+		bookPreviewBtn.setAttribute('class', 'btn btn-lg btn-success');
+		bookPreviewBtn.appendChild(bookPreviewLinkText); 
+		bookDescriptionDiv.appendChild(bookPreviewBtn);
+//adds created HTML to the container to hold the results            
+        searchResults.appendChild(bookDiv); 
+		bookDiv.appendChild(bookTitle); 
+		bookDiv.appendChild(bookAuthThumbDiv); 
+		bookDiv.appendChild(bookDescriptionDiv);
+//hide animated GIF		
+		loadingImg.setAttribute('class','hidden');
+//clears search terms in the search box		
+		document.getElementById("queryText").value ='';
+		}	
+	 
+    }
+  };
+//constructs the request query and sends it out to Google Books API  
+  var URL ="https://www.googleapis.com/books/v1/volumes?q="+queryText+"&maxResults=40";
+  xhttp.open("GET", URL, true);
+  xhttp.send();
+}
+</script>
+
+  <script>
+// hides the footer as the user starts to scroll down and shows the footer as user scrolls back up to the top of the page
+window.onscroll = function() {hideFooter()};
+// bootstrap classes are used for the footer
+function hideFooter() {
+    if (document.body.scrollTop > 50 || document.documentElement.scrollTop > 50) {
+        document.getElementById("footer").className = "container-fluid footer";
+    } else {
+        document.getElementById("footer").className = "container-fluid footer navbar-fixed-bottom";
+    }
+}
+</script> 
+  </body>
+</html>
